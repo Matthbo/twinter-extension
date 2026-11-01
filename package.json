@@ -1,0 +1,25 @@
+{
+  "name": "twinter-extension",
+  "version": "0.1.0",
+  "description": "Browser extension for Twinter",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"TODO\" && exit 1"
+  },
+  "keywords": [],
+  "author": "PerhapsVivy",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@12.17.0+sha512.b8d223ebec04b580a89ed206daa71d1bccb6a1ee1d52efa95cc3b0db75271561df8f0d8e2c43add39c5ec08018af7a8a95108e7090f95a29f88727b7a40fd53d",
+  "dependencies": {
+    "vite": "^8.3.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.7",
+    "eslint-plugin-unicorn": "^79.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}
