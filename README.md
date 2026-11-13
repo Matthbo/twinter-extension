@@ -10,3 +10,4 @@
 - Hide checkmark users
 - Anti queerphobe filters
 - Rename grok to gock
+- Rename qrt (quote retweet) to qt rt (cutie retweet)
