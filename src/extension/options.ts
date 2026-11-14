@@ -6,7 +6,8 @@ export type TwinterOptions = {
   cleanUrls: boolean;
   UI: {
     premium: boolean;
-    hideGrok: boolean;
+    grok: boolean;
+    live: boolean;
     news: boolean;
     trending: boolean; // What’s happening
     whoToFollow: boolean;
@@ -24,10 +25,11 @@ const options: TwinterOptions = {
   cleanUrls: true,
   UI: {
     premium: false,
-    hideGrok: true,
+    grok: false,
+    live: false,
     news: true,
     trending: true,
-    whoToFollow: true
+    whoToFollow: true,
   },
   filters: {
     checkmarkUsers: false,
