@@ -26,6 +26,7 @@ export default class Twinter {
 
     // removes the left bottom buttons (grok & DM) and the bottom banner
     document.querySelector('#layers')?.firstChild?.remove();
+    headerLinks.find((link) => link.getAttribute('aria-label') === 'Calls')?.remove();
 
     if (!this.options.UI.premium) {
       headerLinks.find((link) => link.getAttribute('aria-label') === 'Creator Studio')?.remove();
@@ -43,13 +44,27 @@ export default class Twinter {
     }
   }
 
+  private processTweets(): void {
+    if (this.options.UI.grok) return;
+
+    // eslint-disable-next-line unicorn/prefer-iterator-to-array
+    const tweets = [...document.querySelectorAll('article[role="article"]').values()].filter(
+      (tweet) => !tweet.classList.contains('cleaned'),
+    );
+    console.debug('Cleaning up Grok buttons for', tweets.length, 'tweets');
+    for (const tweet of tweets) {
+      tweet.querySelector('button[aria-label="Grok actions"]')?.parentElement?.remove();
+      tweet.classList.add('cleaned');
+    }
+  }
+
   private setupObserver(): void {
     let currentUrlPath = globalThis.location.pathname;
     const observer = new MutationObserver((_) => {
+      this.processTweets();
+
       const location = globalThis.location.pathname;
-      if (location === currentUrlPath) {
-        return;
-      }
+      if (location === currentUrlPath) return;
 
       currentUrlPath = location;
       console.log('URL path changed to:', currentUrlPath);
