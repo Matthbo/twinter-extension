@@ -1,4 +1,3 @@
-
 export type TwinterOptions = {
   primaryColour: string;
   accentColour: string;
@@ -11,12 +10,12 @@ export type TwinterOptions = {
     news: boolean;
     trending: boolean; // What’s happening
     whoToFollow: boolean;
-  }
+  };
   filters: {
     checkmarkUsers: boolean;
     phobes: boolean;
-  }
-}
+  };
+};
 
 const options: TwinterOptions = {
   primaryColour: '#901444',
@@ -33,8 +32,8 @@ const options: TwinterOptions = {
   },
   filters: {
     checkmarkUsers: false,
-    phobes: false
-  }
+    phobes: false,
+  },
 };
 
 export default options;
