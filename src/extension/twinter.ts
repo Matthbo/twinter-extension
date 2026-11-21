@@ -1,13 +1,13 @@
 import { TwinterOptions } from './options';
-import { getAncestorOfElement, getParentOfElementFromXPath } from './utilities';
+import { getAncestorOfElement, getParentOfElementFromXPath, waitTillElementExists } from './utilities';
 
 export default class Twinter {
   constructor(private options: TwinterOptions) {
-    console.log('Twinter initialized with options:', options);
-    setTimeout(() => {
+    waitTillElementExists('h1', () => {
+      console.debug('Twinter initialized with options:', options);
       this.setupObserver();
       this.loadPageSpecificFeatures(globalThis.location.pathname);
-    }, 3000);
+    });
   }
 
   private loadPageSpecificFeatures(urlPath: string): void {
@@ -27,10 +27,15 @@ export default class Twinter {
   private homeFeatures(): void {
     // eslint-disable-next-line unicorn/prefer-iterator-to-array
     const headerLinks = [...document.querySelectorAll('header a').values()];
-
-    // removes the left bottom buttons (grok & DM) and the bottom banner
-    document.querySelector('#layers')?.firstChild?.remove();
     headerLinks.find((link) => link.getAttribute('aria-label') === 'Calls')?.remove();
+
+    // removes the left bottom buttons (grok & DM)
+    const lbButtonsLayers = document.querySelector('#layers')?.firstChild;
+    if (lbButtonsLayers && lbButtonsLayers.childNodes.length >= 2) {
+      // twice because there are two buttons
+      lbButtonsLayers.firstChild?.remove();
+      lbButtonsLayers.firstChild?.remove();
+    }
 
     if (!this.options.UI.premium) {
       headerLinks.find((link) => link.getAttribute('aria-label') === 'Creator Studio')?.remove();
@@ -55,13 +60,13 @@ export default class Twinter {
     const container = document.querySelector('[aria-labelledby="modal-header"][aria-modal="true"]');
     if (!container || this.options.UI.grok) return;
 
-    const intervalId = setInterval(() => {
-      const grokButton = container.querySelector('button[aria-label="Generate image"]');
-      console.debug('grok button', grokButton);
-      if (!grokButton) return;
-      clearInterval(intervalId);
-      getAncestorOfElement(grokButton, 3)?.remove();
-    });
+    waitTillElementExists(
+      'button[aria-label="Generate image"]',
+      (grokButton) => {
+        getAncestorOfElement(grokButton, 3)?.remove();
+      },
+      container,
+    );
   }
 
   private processTweets(): void {
@@ -90,7 +95,7 @@ export default class Twinter {
       if (location === currentUrlPath) return;
 
       currentUrlPath = location;
-      console.log('URL path changed to:', currentUrlPath);
+      console.debug('URL path changed to:', currentUrlPath);
       this.loadPageSpecificFeatures(currentUrlPath);
     });
     observer.observe(document.querySelector('#react-root')!, { childList: true, subtree: true });

@@ -11,3 +11,18 @@ export function getAncestorOfElement(element: Node, ancestorLevels: number): HTM
   }
   return parent ?? null;
 }
+
+export function waitTillElementExists(
+  selector: string,
+  callback: (element: Element) => void,
+  container?: Element,
+): void {
+  const containerElement = container ?? document;
+  const intervalId = setInterval(() => {
+    const element = containerElement.querySelector(selector);
+    if (!element) return;
+
+    clearInterval(intervalId);
+    callback(element);
+  }, 10);
+}
