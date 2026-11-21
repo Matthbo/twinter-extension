@@ -11,3 +11,8 @@
 - Anti queerphobe filters
 - Rename grok to gock
 - Rename qrt (quote retweet) to qt rt (cutie retweet)
+
+**Dev Tasks**
+- [] Add a settings page
+- [] Add build step for Chrome
+- [] Publish on Firefox and Chrome web stores

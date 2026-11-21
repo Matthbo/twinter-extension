@@ -53,7 +53,10 @@ export default class Twinter {
     );
     console.debug('Cleaning up Grok buttons for', tweets.length, 'tweets');
     for (const tweet of tweets) {
-      tweet.querySelector('button[aria-label="Grok actions"]')?.parentElement?.remove();
+      const grokButton = tweet.querySelector('button[aria-label="Grok actions"]')?.parentElement;
+      if (!grokButton) continue;
+
+      grokButton.remove();
       tweet.classList.add('cleaned');
     }
   }
