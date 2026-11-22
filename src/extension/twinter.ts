@@ -6,8 +6,62 @@ export default class Twinter {
     waitTillElementExists('h1', () => {
       console.debug('Twinter initialized with options:', options);
       this.setupObserver();
-      this.loadPageSpecificFeatures(globalThis.location.pathname);
+      this.loadApplication();
     });
+  }
+
+  private loadApplication(): void {
+    waitTillElementExists('#layers', (layersElement) => {
+      // removes the left bottom buttons (grok & DM)
+      const lbButtonsLayers = layersElement.firstChild;
+      if (!lbButtonsLayers || lbButtonsLayers.childNodes.length < 2) return;
+
+      // twice because there are two buttons
+      lbButtonsLayers.firstChild?.remove();
+      lbButtonsLayers.firstChild?.remove();
+    });
+
+    waitTillElementExists('header a', () => this.updateHeader());
+    waitTillElementExists('[aria-label="Timeline: Trending now"]', () => this.updateSidebar());
+
+    window.addEventListener('resize', () =>
+      setTimeout(() => {
+        this.updateHeader();
+      }, 50),
+    );
+
+    this.updateTitle();
+    this.loadPageSpecificFeatures(globalThis.location.pathname);
+  }
+
+  private updateHeader(): void {
+    // eslint-disable-next-line unicorn/prefer-iterator-to-array
+    const headerLinks = [...document.querySelectorAll('header a').values()];
+    headerLinks.find((link) => link.getAttribute('aria-label') === 'Calls')?.remove();
+
+    if (!this.options.UI.premium) {
+      headerLinks.find((link) => link.getAttribute('aria-label') === 'Creator Studio')?.remove();
+      headerLinks.find((link) => link.getAttribute('aria-label') === 'Premium')?.remove();
+
+      // cope
+      waitTillElementExists('header a[aria-label="Creator Studio"]', (element) => element.remove());
+    }
+
+    if (!this.options.UI.grok) {
+      headerLinks.find((link) => link.getAttribute('aria-label') === 'Grok')?.remove();
+    }
+  }
+
+  private updateSidebar(): void {
+    console.debug('Updating sidebar');
+    if (!this.options.UI.premium)
+      document.querySelector('aside[aria-label="Subscribe to Premium"]')?.parentElement?.remove();
+
+    // eslint-disable-next-line unicorn/prefer-early-return
+    if (!this.options.UI.live) {
+      const container = getParentOfElementFromXPath('//span[text()="Live on X"]', 4);
+      container?.remove();
+    }
   }
 
   private loadPageSpecificFeatures(urlPath: string): void {
@@ -25,35 +79,9 @@ export default class Twinter {
   }
 
   private homeFeatures(): void {
-    // eslint-disable-next-line unicorn/prefer-iterator-to-array
-    const headerLinks = [...document.querySelectorAll('header a').values()];
-    headerLinks.find((link) => link.getAttribute('aria-label') === 'Calls')?.remove();
-
-    // removes the left bottom buttons (grok & DM)
-    const lbButtonsLayers = document.querySelector('#layers')?.firstChild;
-    if (lbButtonsLayers && lbButtonsLayers.childNodes.length >= 2) {
-      // twice because there are two buttons
-      lbButtonsLayers.firstChild?.remove();
-      lbButtonsLayers.firstChild?.remove();
-    }
-
-    if (!this.options.UI.premium) {
-      headerLinks.find((link) => link.getAttribute('aria-label') === 'Creator Studio')?.remove();
-      headerLinks.find((link) => link.getAttribute('aria-label') === 'Premium')?.remove();
-      document.querySelector('aside[aria-label="Subscribe to Premium"]')?.parentElement?.remove();
-    }
-
-    if (!this.options.UI.live) {
-      const container = getParentOfElementFromXPath('//span[text()="Live on X"]', 4);
-      container?.remove();
-    }
-
-    // eslint-disable-next-line unicorn/prefer-early-return
-    if (!this.options.UI.grok) {
-      headerLinks.find((link) => link.getAttribute('aria-label') === 'Grok')?.remove();
-      const grokButton = document.querySelector('button[aria-label="Generate image"]');
-      if (grokButton) getAncestorOfElement(grokButton, 3)?.remove();
-    }
+    if (this.options.UI.grok) return;
+    const grokButton = document.querySelector('button[aria-label="Generate image"]');
+    if (grokButton) getAncestorOfElement(grokButton, 3)?.remove();
   }
 
   private loadComposeTweetFeatures(): void {
@@ -97,7 +125,22 @@ export default class Twinter {
       currentUrlPath = location;
       console.debug('URL path changed to:', currentUrlPath);
       this.loadPageSpecificFeatures(currentUrlPath);
+      this.updateSidebar();
     });
     observer.observe(document.querySelector('#react-root')!, { childList: true, subtree: true });
+
+    const titleObserver = new MutationObserver(() => this.updateTitle());
+    titleObserver.observe(document.querySelector('title')!, { childList: true });
+  }
+
+  private updateTitle(): void {
+    const title = document.title;
+    console.log('Title:', title);
+    if (title.endsWith('Twinter')) return;
+    if (title === 'X') {
+      document.title = 'Twinter';
+      return;
+    }
+    document.title = title.replace('/ X', '/ Twinter');
   }
 }
