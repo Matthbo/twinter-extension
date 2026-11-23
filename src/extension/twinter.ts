@@ -54,13 +54,30 @@ export default class Twinter {
 
   private updateSidebar(): void {
     console.debug('Updating sidebar');
-    if (!this.options.UI.premium)
-      document.querySelector('aside[aria-label="Subscribe to Premium"]')?.parentElement?.remove();
+    if (!this.options.UI.premium) {
+      const premiumTextElement = document.querySelector('aside[aria-label="Subscribe to Premium"]');
+      if (premiumTextElement) getAncestorOfElement(premiumTextElement, 2)?.remove();
+    }
 
-    // eslint-disable-next-line unicorn/prefer-early-return
     if (!this.options.UI.live) {
       const container = getParentOfElementFromXPath('//span[text()="Live on X"]', 4);
       container?.remove();
+    }
+
+    if (!this.options.UI.news) {
+      const container = getParentOfElementFromXPath('//span[text()="Today’s News"]', 4);
+      container?.remove();
+    }
+
+    if (!this.options.UI.trending) {
+      const trendingTextElement = document.querySelector('[aria-label="Timeline: Trending now"]');
+      if (trendingTextElement) getAncestorOfElement(trendingTextElement, 2)?.remove();
+    }
+
+    // eslint-disable-next-line unicorn/prefer-early-return
+    if (!this.options.UI.whoToFollow) {
+      const followTextElement = document.querySelector('aside[aria-label="Who to follow"]');
+      if (followTextElement) getAncestorOfElement(followTextElement, 2)?.remove();
     }
   }
 
