@@ -3,26 +3,19 @@ import { getAncestorOfElement, getParentOfElementFromXPath, waitTillElementExist
 
 export default class Twinter {
   constructor(private options: TwinterOptions) {
-    waitTillElementExists('h1', () => {
-      console.debug('Twinter initialized with options:', options);
+    console.debug('Twinter initialized with options:', options);
+    this.clearServerRenderedContent();
+    waitTillElementExists('main', () => {
       this.setupObserver();
       this.loadApplication();
     });
   }
 
   private loadApplication(): void {
-    waitTillElementExists('#layers', (layersElement) => {
-      // removes the left bottom buttons (grok & DM)
-      const lbButtonsLayers = layersElement.firstChild;
-      if (!lbButtonsLayers || lbButtonsLayers.childNodes.length < 2) return;
-
-      // twice because there are two buttons
-      lbButtonsLayers.firstChild?.remove();
-      lbButtonsLayers.firstChild?.remove();
-    });
-
-    waitTillElementExists('header a', () => this.updateHeader());
-    waitTillElementExists('[aria-label="Timeline: Trending now"]', () => this.updateSidebar());
+    waitTillElementExists('nav a', () => this.updateHeader());
+    waitTillElementExists('aside', () => this.updateSidebar());
+    waitTillElementExists('[data-slot="xds-dock"]', (layersElement) => layersElement.remove());
+    waitTillElementExists('main', () => this.loadPageSpecificFeatures(globalThis.location.pathname));
 
     window.addEventListener('resize', () =>
       setTimeout(() => {
@@ -31,20 +24,16 @@ export default class Twinter {
     );
 
     this.updateTitle();
-    this.loadPageSpecificFeatures(globalThis.location.pathname);
   }
 
   private updateHeader(): void {
     // eslint-disable-next-line unicorn/prefer-iterator-to-array
-    const headerLinks = [...document.querySelectorAll('header a').values()];
+    const headerLinks = [...document.querySelectorAll('nav a').values()];
     headerLinks.find((link) => link.getAttribute('aria-label') === 'Calls')?.remove();
 
     if (!this.options.UI.premium) {
       headerLinks.find((link) => link.getAttribute('aria-label') === 'Creator Studio')?.remove();
       headerLinks.find((link) => link.getAttribute('aria-label') === 'Premium')?.remove();
-
-      // cope
-      waitTillElementExists('header a[aria-label="Creator Studio"]', (element) => element.remove());
     }
 
     if (!this.options.UI.grok) {
@@ -97,19 +86,18 @@ export default class Twinter {
 
   private homeFeatures(): void {
     if (this.options.UI.grok) return;
-    const grokButton = document.querySelector('button[aria-label="Generate image"]');
-    if (grokButton) getAncestorOfElement(grokButton, 3)?.remove();
+    waitTillElementExists('main form', (composeForm) => {
+      composeForm.querySelector('button[aria-label="Generate image"]')?.parentElement?.remove();
+    });
   }
 
   private loadComposeTweetFeatures(): void {
-    const container = document.querySelector('[aria-labelledby="modal-header"][aria-modal="true"]');
+    const container = document.querySelector('[data-slot="xds-modal-surface"]');
     if (!container || this.options.UI.grok) return;
 
     waitTillElementExists(
       'button[aria-label="Generate image"]',
-      (grokButton) => {
-        getAncestorOfElement(grokButton, 3)?.remove();
-      },
+      (grokButton) => grokButton.parentElement?.remove(),
       container,
     );
   }
@@ -133,9 +121,7 @@ export default class Twinter {
 
   private setupObserver(): void {
     let currentUrlPath = globalThis.location.pathname;
-    const observer = new MutationObserver((_) => {
-      this.processTweets();
-
+    const pageObserver = new MutationObserver((_) => {
       const location = globalThis.location.pathname;
       if (location === currentUrlPath) return;
 
@@ -143,11 +129,12 @@ export default class Twinter {
       console.debug('URL path changed to:', currentUrlPath);
       this.loadPageSpecificFeatures(currentUrlPath);
       this.updateSidebar();
+      this.updateTitle();
     });
-    observer.observe(document.querySelector('#react-root')!, { childList: true, subtree: true });
+    pageObserver.observe(document.querySelector('body')!, { childList: true, subtree: true });
 
-    const titleObserver = new MutationObserver(() => this.updateTitle());
-    titleObserver.observe(document.querySelector('title')!, { childList: true });
+    const mainObserver = new MutationObserver((_) => this.processTweets());
+    mainObserver.observe(document.querySelector('main')!, { childList: true, subtree: true });
   }
 
   private updateTitle(): void {
@@ -159,5 +146,13 @@ export default class Twinter {
       return;
     }
     document.title = title.replace('/ X', '/ Twinter');
+  }
+
+  private clearServerRenderedContent(): void {
+    console.log('black out?', document.querySelector('template[data-dgst]') != null);
+    if (document.querySelector('template[data-dgst]') == null) return;
+    // eslint-disable-next-line unicorn/prefer-iterator-to-array
+    const divs = [...document.body.childNodes.values()].filter((node) => node.nodeName === 'DIV');
+    for (const div of divs) div.remove();
   }
 }
