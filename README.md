@@ -16,3 +16,4 @@
 - [] Add a settings page
 - [] Add build step for Chrome
 - [] Publish on Firefox and Chrome web stores
+- grok button on qrt modal & refreshing compose form on home page (??)

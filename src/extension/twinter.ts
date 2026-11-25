@@ -71,7 +71,8 @@ export default class Twinter {
   }
 
   private loadPageSpecificFeatures(urlPath: string): void {
-    switch (urlPath) {
+    const path = urlPath.includes('?') ? urlPath.slice(0, urlPath.indexOf('?')) : urlPath;
+    switch (path) {
       case '/home': {
         this.homeFeatures();
         break;
