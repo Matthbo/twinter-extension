@@ -136,7 +136,7 @@ export default class Twinter {
   private updateTitle(): void {
     const title = document.title;
     console.log('Title:', title);
-    if (title.endsWith('Twinter')) return;
+    if (title.startsWith('(') || !title.endsWith('X')) return;
     if (title === 'X') {
       document.title = 'Twinter';
       return;
